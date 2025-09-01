@@ -9,7 +9,7 @@ class City_Temperature_Widget extends WP_Widget {
             'city_temperature_widget',
             __( 'City Temperature Widget', 'storefront-child' ),
             array(
-                'description' => __( 'Display a city with its coordinates', 'storefront-child' ),
+                'description' => __( 'Display a city with its temperature', 'storefront-child' ),
             )
         );
     }
@@ -26,8 +26,8 @@ class City_Temperature_Widget extends WP_Widget {
             return;
         }
 
-        $latitude = get_post_meta( $city_id, 'latitude', true );
-        $longitude = get_post_meta( $city_id, 'longitude', true );
+        $city_data = new CityData();
+        $temperature = $city_data->get_temperature_in_celcius( $city_id );
 
         echo $args['before_widget'];
 
@@ -38,9 +38,8 @@ class City_Temperature_Widget extends WP_Widget {
         echo '<div class="city-temperature-widget">';
         echo '<h3>' . esc_html( $city->post_title ) . '</h3>';
         
-        if ( $latitude && $longitude ) {
-            echo '<p><strong>' . __( 'Latitude:', 'storefront-child' ) . '</strong> ' . esc_html( $latitude ) . '</p>';
-            echo '<p><strong>' . __( 'Longitude:', 'storefront-child' ) . '</strong> ' . esc_html( $longitude ) . '</p>';
+        if ( $temperature ) {
+            echo '<p><strong>' . __( 'Temperature:', 'storefront-child' ) . '</strong> ' . esc_html( $temperature ) . '°C</p>';
         }
         echo '</div>';
 

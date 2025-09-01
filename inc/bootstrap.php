@@ -28,3 +28,5 @@ require_once __DIR__ . '/class-cities-repository.php';
 // Include AJAX handlers
 require_once __DIR__ . '/Ajax/CitiesSearch.php';
 
+// Include city data service
+require_once __DIR__ . '/Services/CityData.php';

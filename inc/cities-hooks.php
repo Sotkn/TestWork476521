@@ -40,6 +40,9 @@ function render_cities_table($results) {
 		}
 		$cities_by_country[$country][] = $row;
 	}
+	
+	// Initialize CityData service for temperature
+	$city_data = new CityData();
 	?>
 
 	<div class="cities-list-wrapper">
@@ -48,7 +51,15 @@ function render_cities_table($results) {
 				<h2><?php echo esc_html($country_name); ?></h2>
 				<ul class="cities-list">
 					<?php foreach ($cities as $city): ?>
-						<li><?php echo esc_html(isset($city->city_name) ? $city->city_name : ''); ?></li>
+						<li>
+							<?php echo esc_html(isset($city->city_name) ? $city->city_name : ''); ?>
+							<?php if (isset($city->city_id)): ?>
+								<?php $temperature = $city_data->get_temperature_in_celcius($city->city_id); ?>
+								<?php if ($temperature): ?>
+									<span class="city-temperature"> - <?php echo esc_html($temperature); ?>°C</span>
+								<?php endif; ?>
+							<?php endif; ?>
+						</li>
 					<?php endforeach; ?>
 				</ul>
 			</div>
