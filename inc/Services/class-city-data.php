@@ -17,9 +17,16 @@ class CityData {
      * Get temperature for a city
      * 
      * @param int $city_id The city ID
-     * @return int Returns the city ID (fake implementation)
+     * @return int Returns a realistic temperature between -10 and 35 degrees Celsius
      */
     public function get_temperature_in_celcius($city_id) {
-        return $city_id;
+        // Generate a realistic temperature based on city ID
+        // This is a mock implementation - in production you'd call a weather API
+        $seed = $city_id * 12345; // Create a seed based on city ID
+        $temperature = ($seed % 45) - 10; // Range from -10 to 35 degrees Celsius
+        
+        return $temperature;
     }
 }
+
+

@@ -15,9 +15,10 @@ defined('ABSPATH') || exit;
          <?php
          do_action('cities_list_before_table');
          
-         $results = Cities_Repository::get_cities_with_countries();
+         $cities_repo_with_temp = new CitiesRepositoryWithTemp();
+         $results = $cities_repo_with_temp->get_cities_with_countries_and_temp();
  
-         get_template_part('template-parts/cities/list', null, ['results' => $results]);
+         get_template_part('template-parts/cities/list-with-search', null, ['results' => $results]);
  
          do_action('cities_list_after_table');
          ?>

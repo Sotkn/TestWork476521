@@ -14,16 +14,15 @@ defined('ABSPATH') || exit;
 class CitiesSearch {
     
     /**
-     * Rate limiting options
+     * Rate limiter instance
      */
-    private const RATE_LIMIT_KEY = 'cities_search_rate_limit';
-    private const RATE_LIMIT_MAX = 10; // Max requests per minute
-    private const RATE_LIMIT_WINDOW = 60; // 1 minute window
+    private $rate_limiter;
     
     /**
      * Initialize the class
      */
     public function __construct() {
+        $this->rate_limiter = new Rate_Limiter('cities_search_rate_limit', 10, 60);
         $this->init_hooks();
     }
     
@@ -49,7 +48,7 @@ class CitiesSearch {
         }
 
         // Check rate limiting
-        if (!$this->check_rate_limit()) {
+        if (!$this->rate_limiter->check_rate_limit()) {
             wp_send_json_error(['message' => __('Too many requests. Please try again later.', 'storefront-child')], 429);
         }
 
@@ -59,13 +58,12 @@ class CitiesSearch {
             wp_send_json_error(['message' => $search_term->get_error_message()], 400);
         }
 
-        // Get search results
-        $results = Cities_Repository::search_cities_and_countries($search_term);
+        // Get search results with temperature data
+        $cities_repo_with_temp = new CitiesRepositoryWithTemp();
+        $results = $cities_repo_with_temp->search_cities_and_countries_with_temp($search_term);
         
-        // Start output buffering to capture the rendered table
-        ob_start();
-        render_cities_table($results);
-        $html = ob_get_clean();
+        // Get the rendered table HTML
+        $html = render_cities_table($results);
         
         wp_send_json_success([
             'html' => $html,
@@ -95,52 +93,7 @@ class CitiesSearch {
         return $search_term;
     }
     
-    /**
-     * Check rate limiting for the current user
-     * 
-     * @return bool True if within rate limit, false otherwise
-     */
-    private function check_rate_limit() {
-        $user_id = get_current_user_id();
-        $ip = $this->get_client_ip();
-        $key = self::RATE_LIMIT_KEY . '_' . ($user_id ?: $ip);
-        
-        $requests = get_transient($key);
-        if ($requests === false) {
-            $requests = 1;
-            set_transient($key, $requests, self::RATE_LIMIT_WINDOW);
-            return true;
-        }
-        
-        if ($requests >= self::RATE_LIMIT_MAX) {
-            return false;
-        }
-        
-        set_transient($key, $requests + 1, self::RATE_LIMIT_WINDOW);
-        return true;
-    }
-    
-    /**
-     * Get client IP address
-     * 
-     * @return string Client IP address
-     */
-    private function get_client_ip() {
-        $ip_keys = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
-        
-        foreach ($ip_keys as $key) {
-            if (array_key_exists($key, $_SERVER) === true) {
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
-                    $ip = trim($ip);
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
-                        return $ip;
-                    }
-                }
-            }
-        }
-        
-        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-    }
+
     
     /**
      * Enqueue cities search assets

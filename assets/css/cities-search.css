@@ -147,6 +147,31 @@
     transform: translateX(2px);
 }
 
+/* City item with temperature styling */
+.city-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+}
+
+.city-name {
+    font-weight: 500;
+    color: #212529;
+}
+
+.city-temperature {
+    background: #007cba;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 45px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 124, 186, 0.3);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .search-form {
