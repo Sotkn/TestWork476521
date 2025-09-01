@@ -13,3 +13,5 @@ function child_theme_enqueue_styles() {
 add_action('wp_enqueue_scripts', 'child_theme_enqueue_styles');
 
 
+// Include bootstrap
+require_once __DIR__ . '/inc/bootstrap.php';
