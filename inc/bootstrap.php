@@ -14,3 +14,9 @@ require_once __DIR__ . '/Taxonomies/Countries/register.php';
 
 // Include widgets for cities
 require_once __DIR__ . '/Widgets/City_Temperature_Widget.php';
+
+// Include cities hooks
+require_once __DIR__ . '/cities-hooks.php';
+
+// Include cities repository
+require_once __DIR__ . '/class-cities-repository.php';
