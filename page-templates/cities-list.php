@@ -1,4 +1,7 @@
 <?php
+// page-templates/cities-list.php
+defined('ABSPATH') || exit;
+
 /**
  * Template Name: Cities List
  * Template Post Type: page

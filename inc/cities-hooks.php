@@ -19,3 +19,5 @@ add_action('delete_term', function($term, $tt_id, $taxonomy) {
 		Cities_Repository::flush_cache();
 	}
 }, 10, 3);
+
+

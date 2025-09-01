@@ -1,4 +1,7 @@
 <?php
+// inc/Taxonomies/Countries/register.php
+defined('ABSPATH') || exit;
+
 // Register Custom Taxonomy for Countries
 function register_countries_taxonomy() {
     $args = array(

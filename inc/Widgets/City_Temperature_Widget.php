@@ -1,4 +1,7 @@
 <?php
+// inc/Widgets/City_Temperature_Widget.php
+defined('ABSPATH') || exit;
+
 class City_Temperature_Widget extends WP_Widget {
 
     public function __construct() {

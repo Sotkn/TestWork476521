@@ -1,4 +1,7 @@
 <?php
+// inc/Metaboxes/Cities/coords.php
+defined('ABSPATH') || exit;
+
 // Add metabox for Cities coordinates
 function add_cities_coords_metabox() {
     add_meta_box(

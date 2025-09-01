@@ -1,4 +1,8 @@
 <?php
+// inc/bootstrap.php
+defined('ABSPATH') || exit;
+
+
 
 define('THEME_PATH', get_stylesheet_directory());
 define('THEME_URL',  get_stylesheet_directory_uri());
@@ -20,3 +24,6 @@ require_once __DIR__ . '/cities-hooks.php';
 
 // Include cities repository
 require_once __DIR__ . '/class-cities-repository.php';
+
+// Include AJAX handlers
+require_once __DIR__ . '/Ajax/CitiesSearch.php';

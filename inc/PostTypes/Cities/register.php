@@ -1,4 +1,7 @@
 <?php
+// inc/PostTypes/Cities/register.php
+defined('ABSPATH') || exit;
+
 // Register Custom Post Type for Cities
 function register_cities_cpt() {
     $args = array(
