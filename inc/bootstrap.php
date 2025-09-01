@@ -11,3 +11,6 @@ require_once __DIR__ . '/Metaboxes/Cities/coords.php';
 
 // Include taxonomies for cities
 require_once __DIR__ . '/Taxonomies/Countries/register.php';
+
+// Include widgets for cities
+require_once __DIR__ . '/Widgets/City_Temperature_Widget.php';
