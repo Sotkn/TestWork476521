@@ -7,9 +7,9 @@ class City_Temperature_Widget extends WP_Widget {
     public function __construct() {
         parent::__construct(
             'city_temperature_widget',
-            __( 'City Temperature Widget', 'text_domain' ),
+            __( 'City Temperature Widget', 'storefront-child' ),
             array(
-                'description' => __( 'Display a city with its coordinates', 'text_domain' ),
+                'description' => __( 'Display a city with its coordinates', 'storefront-child' ),
             )
         );
     }
@@ -39,8 +39,8 @@ class City_Temperature_Widget extends WP_Widget {
         echo '<h3>' . esc_html( $city->post_title ) . '</h3>';
         
         if ( $latitude && $longitude ) {
-            echo '<p><strong>' . __( 'Latitude:', 'text_domain' ) . '</strong> ' . esc_html( $latitude ) . '</p>';
-            echo '<p><strong>' . __( 'Longitude:', 'text_domain' ) . '</strong> ' . esc_html( $longitude ) . '</p>';
+            echo '<p><strong>' . __( 'Latitude:', 'storefront-child' ) . '</strong> ' . esc_html( $latitude ) . '</p>';
+            echo '<p><strong>' . __( 'Longitude:', 'storefront-child' ) . '</strong> ' . esc_html( $longitude ) . '</p>';
         }
         echo '</div>';
 
@@ -48,7 +48,7 @@ class City_Temperature_Widget extends WP_Widget {
     }
 
     public function form( $instance ) {
-        $title = ! empty( $instance['title'] ) ? $instance['title'] : __( 'City Information', 'text_domain' );
+        $title = ! empty( $instance['title'] ) ? $instance['title'] : __( 'City Information', 'storefront-child' );
         $city_id = ! empty( $instance['city_id'] ) ? $instance['city_id'] : '';
 
         // Get all cities
@@ -59,13 +59,13 @@ class City_Temperature_Widget extends WP_Widget {
         ) );
         ?>
         <p>
-            <label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php _e( 'Title:', 'text_domain' ); ?></label>
+            <label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php _e( 'Title:', 'storefront-child' ); ?></label>
             <input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>">
         </p>
         <p>
-            <label for="<?php echo esc_attr( $this->get_field_id( 'city_id' ) ); ?>"><?php _e( 'Select City:', 'text_domain' ); ?></label>
+            <label for="<?php echo esc_attr( $this->get_field_id( 'city_id' ) ); ?>"><?php _e( 'Select City:', 'storefront-child' ); ?></label>
             <select class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'city_id' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'city_id' ) ); ?>">
-                <option value=""><?php _e( 'Select a city...', 'text_domain' ); ?></option>
+                <option value=""><?php _e( 'Select a city...', 'storefront-child' ); ?></option>
                 <?php foreach ( $cities as $city ) : ?>
                     <option value="<?php echo esc_attr( $city->ID ); ?>" <?php selected( $city_id, $city->ID ); ?>>
                         <?php echo esc_html( $city->post_title ); ?>

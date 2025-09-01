@@ -126,7 +126,7 @@
                     $tableContainer.html('<div class="error">' + citiesSearchAjax.noResults + '</div>');
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
                 $tableContainer.html('<div class="error">' + citiesSearchAjax.noResults + '</div>');
             },
             complete: function() {

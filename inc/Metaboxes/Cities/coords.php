@@ -6,7 +6,7 @@ defined('ABSPATH') || exit;
 function add_cities_coords_metabox() {
     add_meta_box(
         'cities_coords',
-        __( 'Coordinates', 'text_domain' ),
+        __( 'Coordinates', 'storefront-child' ),
         'cities_coords_metabox_callback',
         'cities',
         'normal',
@@ -54,7 +54,7 @@ function save_cities_coords_metabox( $post_id ) {
         } else {
             // Add admin notice for invalid latitude
             add_action( 'admin_notices', function() {
-                echo '<div class="notice notice-error"><p>' . __( 'Latitude must be between -90 and 90.', 'text_domain' ) . '</p></div>';
+                echo '<div class="notice notice-error"><p>' . __( 'Latitude must be between -90 and 90.', 'storefront-child' ) . '</p></div>';
             });
         }
     }
@@ -66,7 +66,7 @@ function save_cities_coords_metabox( $post_id ) {
         } else {
             // Add admin notice for invalid longitude
             add_action( 'admin_notices', function() {
-                echo '<div class="notice notice-error"><p>' . __( 'Longitude must be between -180 and 180.', 'text_domain' ) . '</p></div>';
+                echo '<div class="notice notice-error"><p>' . __( 'Longitude must be between -180 and 180.', 'storefront-child' ) . '</p></div>';
             });
         }
     }
@@ -77,17 +77,17 @@ add_action( 'save_post', 'save_cities_coords_metabox' );
 function display_fields($latitude, $longitude) {
     echo '<table class="form-table">';
     echo '<tr>';
-    echo '<th><label for="latitude">' . __( 'Latitude', 'text_domain' ) . '</label></th>';
+            echo '<th><label for="latitude">' . __( 'Latitude', 'storefront-child' ) . '</label></th>';
     echo '<td>';
     echo '<input type="number" id="latitude" name="latitude" value="' . esc_attr( $latitude ) . '" class="regular-text" min="-90" max="90" step="any" />';
-    echo '<p class="description">' . __( 'Must be between -90 and 90', 'text_domain' ) . '</p>';
+            echo '<p class="description">' . __( 'Must be between -90 and 90', 'storefront-child' ) . '</p>';
     echo '</td>';
     echo '</tr>';
     echo '<tr>';
-    echo '<th><label for="longitude">' . __( 'Longitude', 'text_domain' ) . '</label></th>';
+            echo '<th><label for="longitude">' . __( 'Longitude', 'storefront-child' ) . '</label></th>';
     echo '<td>';
     echo '<input type="number" id="longitude" name="longitude" value="' . esc_attr( $longitude ) . '" class="regular-text" min="-180" max="180" step="any" />';
-    echo '<p class="description">' . __( 'Must be between -180 and 180', 'text_domain' ) . '</p>';
+            echo '<p class="description">' . __( 'Must be between -180 and 180', 'storefront-child' ) . '</p>';
     echo '</td>';
     echo '</tr>';
     echo '</table>';

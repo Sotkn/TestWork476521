@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  ?>
  <div class="cities-list-container">
      <div class="container">
-         <h1><?php _e('Cities by Country', 'text_domain'); ?></h1>
+         <h1><?php _e('Cities by Country', 'storefront-child'); ?></h1>
          <?php
          do_action('cities_list_before_table');
          
