@@ -8,3 +8,6 @@ require_once __DIR__ . '/PostTypes/Cities/register.php';
 
 // Include metaboxes for cities
 require_once __DIR__ . '/Metaboxes/Cities/coords.php';
+
+// Include taxonomies for cities
+require_once __DIR__ . '/Taxonomies/Countries/register.php';
