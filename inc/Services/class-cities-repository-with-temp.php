@@ -86,7 +86,8 @@ class CitiesRepositoryWithTemp {
         $require_update_cache_cities = [];
         
         // Get weather cache data for all cities at once to minimize database queries
-        $weather_cache_data = WeatherCacheRepository::get_weather_cache_for_cities($cities);
+        $weather_cities_cache_data = WeatherCacheRepository::get_weather_cache_for_cities($cities);
+        
         
         foreach ($cities as $city) {
             $city_with_temp = (array) $city;
@@ -95,21 +96,23 @@ class CitiesRepositoryWithTemp {
             $temperature_celsius = null;
 
             // Handle cache management and weather data retrieval for this city
-            $weather_info = $this->handle_cache_for_city($city, $weather_cache_data);
-            if ($weather_info['status'] != 'valid') {
+            $city_cache = $this->handle_cache_for_city($city, $weather_cities_cache_data);
+            error_log('City cache: ' . print_r($city_cache, true));
+            if ($city_cache['status'] != 'valid') {
                 $require_update_cache_cities[] = $city;
             }
             // Extract temperature from the weather info
-            $temperature_celsius = $weather_info['temperature_celsius'] ?? null;
+            $temperature_celsius = $city_cache['temperature_celsius'] ?? null;
             
             // Add temperature and cache status to city data
             $city_with_temp['temperature_celsius'] = $temperature_celsius;
-            $city_with_temp['cache_status'] = $weather_info['status'];
+            $city_with_temp['cache_status'] = $city_cache['status'];
             
             $cities_with_temp[] = (object) $city_with_temp;
         }
         
         // Only request weather data if there are cities that need updates
+        error_log('Require update cache cities: ' . print_r($require_update_cache_cities, true));
         if (!empty($require_update_cache_cities)) {
             $this->request_weather_data($require_update_cache_cities);
         }
@@ -149,12 +152,20 @@ class CitiesRepositoryWithTemp {
      * @return array|null City cache data if exists, null otherwise
      */
     private function cache_if_exist($city, array $weather_cache_data): ?array {
-        if (isset($city->city_id) && isset($weather_cache_data[$city->city_id])) {
-            return $weather_cache_data[$city->city_id];
-        } else {
-            return null;
+        $id = $city->city_id ?? 0;
+    
+        if (
+            $id > 0 &&
+            isset($weather_cache_data[$id]['weather_cache']) &&
+            !empty($weather_cache_data[$id]['weather_cache'])
+        ) {
+            
+            return $weather_cache_data[$id]['weather_cache'];
         }
+        
+        return null;
     }
+    
     
     /**
      * Check if the cache for a city has expired
@@ -180,26 +191,19 @@ class CitiesRepositoryWithTemp {
     /**
      * Request fresh weather data for cities
      * 
-     * Placeholder method for when WeatherUpdater class is created.
-     * Currently logs the request to avoid fatal errors.
+     * Uses WeatherUpdater class to retrieve and store weather data
+     * for cities that need cache updates.
      * 
      * @param array $cities Array of city objects to update weather data for
      * @return void
      */
     private function request_weather_data(array $cities): void {
-        // TODO: WeatherUpdater class will be created later
-        // For now, just log that weather updates are needed
         if (!empty($cities)) {
-            $city_names = array_map(function($city) {
-                return isset($city->city_name) ? $city->city_name : 'Unknown';
-            }, $cities);
             
-            error_log('Weather data update requested for cities: ' . implode(', ', $city_names));
+            
+            $weather_updater = new WeatherUpdater();
+            $weather_updater->update_weather_data($cities);
         }
-        
-        // Placeholder for future implementation
-        // $weather_updater = new WeatherUpdater();
-        // $weather_updater->update_weather_data($cities);
     }
 
     /**

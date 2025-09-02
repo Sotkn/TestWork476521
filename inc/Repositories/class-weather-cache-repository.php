@@ -3,210 +3,137 @@
 defined('ABSPATH') || exit;
 
 /**
- * Weather Cache Repository Class
+ * Weather Cache Repository (simplified)
  *
- * A static class that manages weather cache data for cities.
- * Retrieves weather cache information from the database and provides
- * methods to access cached weather data for multiple cities.
+ * Public method: get_weather_cache_for_cities($cities)
+ * Returns an array keyed by city_id:
+ * [
+ *   <city_id> => [
+ *     'city_name'     => (string),
+ *     'weather_cache' => (array|null|string) // decoded JSON, null, or raw string if JSON is invalid
+ *   ],
+ *   ...
+ * ]
  *
- * @package Storefront_Child
- * @subpackage Repositories
- * @since 1.0.0
+ * Expects $cities as an array of objects/arrays with:
+ * - city_id   (int, required)
+ * - city_name (string, optional)
  */
-class WeatherCacheRepository {
+final class WeatherCacheRepository {
+
+	/** Meta key for weather cache */
+	private const META_KEY = '__weather_cache';
 
 	/**
-	 * Retrieves weather cache data for a list of cities.
+	 * Retrieve weather cache for multiple cities.
 	 *
-	 * Fetches the _weather_cache meta field for each city and returns
-	 * a consolidated dictionary of weather data. Handles cases where
-	 * weather cache may not exist yet.
-	 *
-	 * @since 1.0.0
-	 * @access public
-	 * @static
-	 *
-	 * @param array $cities Array of city objects from Cities_Repository.
-	 *                      Each object should have: city_id, city_name, country_name, country_slug.
-	 * @return array Dictionary of weather cache data indexed by city_id.
-	 *               Returns empty array if no cities provided or no cache exists.
+	 * @param array $cities Array of city objects/arrays.
+	 * @return array
 	 */
 	public static function get_weather_cache_for_cities(array $cities): array {
-		// Return empty array if no cities provided
 		if (empty($cities)) {
 			return [];
 		}
 
-		// Extract city IDs for meta query
-		$city_ids = array_map(function($city) {
-			return $city->city_id;
-		}, $cities);
-
-		// Get weather cache meta for all cities at once
-		$weather_cache_data = self::get_weather_cache_meta($city_ids);
-
-		// Build result dictionary
+		// Normalize input and collect IDs
 		$result = [];
-		foreach ($cities as $city) {
-			$city_id = $city->city_id;
-			
-			// Get cached weather data for this city
-			$cached_weather = isset($weather_cache_data[$city_id]) ? $weather_cache_data[$city_id] : null;
-			
-			// Store in result dictionary
+		$ids    = [];
+
+		foreach ($cities as $c) {
+			$city_id = (int) (is_object($c) ? ($c->city_id ?? 0) : ($c['city_id'] ?? 0));
+			if ($city_id <= 0) {
+				continue;
+			}
+			$city_name = (string) (is_object($c) ? ($c->city_name ?? '') : ($c['city_name'] ?? ''));
+
+			$ids[] = $city_id;
 			$result[$city_id] = [
-				'city_id' => $city_id,
-				'city_name' => $city->city_name,
-				'country_name' => $city->country_name,
-				'country_slug' => $city->country_slug,
-				'weather_cache' => $cached_weather,
-				'has_cache' => !empty($cached_weather)
+				'city_name'     => $city_name,
+				'weather_cache' => null,
 			];
 		}
 
+		if (empty($ids)) {
+			return $result;
+		}
+
+		// Fetch meta for all IDs in one query
+		$raw_meta = self::fetch_meta_for_ids($ids);
+
+		foreach ($raw_meta as $post_id => $meta_value) {
+			$decoded = null;
+			if ($meta_value !== null && $meta_value !== '') {
+				$decoded = json_decode($meta_value, true);
+				if (json_last_error() !== JSON_ERROR_NONE) {
+					$decoded = $meta_value; // fallback to raw string
+				}
+			}
+			if (isset($result[$post_id])) {
+				$result[$post_id]['weather_cache'] = $decoded;
+			}
+		}
+		error_log('Weather cache data: ' . print_r($result, true));
 		return $result;
 	}
 
 	/**
-	 * Retrieves weather cache meta data for multiple cities efficiently.
+	 * Flush weather cache for all cities (only for 'cities' post type).
 	 *
-	 * Uses WordPress meta query to fetch _weather_cache meta for multiple
-	 * cities in a single database query for better performance.
-	 *
-	 * @since 1.0.0
-	 * @access private
-	 * @static
-	 *
-	 * @param array $city_ids Array of city post IDs.
-	 * @return array Associative array of city_id => weather_cache_data.
+	 * @return int Number of cache entries deleted.
 	 */
-	private static function get_weather_cache_meta(array $city_ids): array {
-		if (empty($city_ids)) {
+	public static function flush_weather_cache_for_all_cities(): int {
+		global $wpdb;
+
+		// Delete weather cache only for posts of type 'cities'
+		$deleted = $wpdb->query($wpdb->prepare("
+			DELETE pm FROM {$wpdb->postmeta} pm
+			INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+			WHERE pm.meta_key = %s 
+			AND p.post_type = %s
+		", self::META_KEY, 'cities'));
+
+		if ($deleted === false) {
+			error_log('Failed to flush weather cache: ' . $wpdb->last_error);
+			return 0;
+		}
+
+		error_log("Weather cache flushed for cities post type: {$deleted} entries deleted");
+		return (int) $deleted;
+	}
+
+	/**
+	 * Fetch raw meta values for multiple post IDs in a single query.
+	 *
+	 * @param int[] $ids
+	 * @return array<int,string|null> post_id => meta_value
+	 */
+	private static function fetch_meta_for_ids(array $ids): array {
+		global $wpdb;
+
+		$ids = array_values(array_unique(array_map('intval', $ids)));
+		if (empty($ids)) {
 			return [];
 		}
 
-		global $wpdb;
+		$placeholders = implode(',', array_fill(0, count($ids), '%d'));
 
-		// Prepare placeholders for IN clause
-		$placeholders = implode(',', array_fill(0, count($city_ids), '%d'));
-
-		// Query to get weather cache meta for multiple cities
 		$sql = "
-			SELECT 
-				post_id,
-				meta_value
+			SELECT post_id, meta_value
 			FROM {$wpdb->postmeta}
 			WHERE meta_key = %s
-			  AND post_id IN ({$placeholders})
+			  AND post_id IN ($placeholders)
 		";
 
-		// Prepare query parameters
-		$params = array_merge(['_weather_cache'], $city_ids);
-		
-		// Execute query
-		$results = $wpdb->get_results(
-			$wpdb->prepare($sql, ...$params)
-		);
+		$params  = array_merge([self::META_KEY], $ids);
+		$rows    = $wpdb->get_results($wpdb->prepare($sql, ...$params));
+		$results = [];
 
-		// Build result array
-		$weather_cache = [];
-		foreach ($results as $result) {
-			$post_id = $result->post_id;
-			$meta_value = $result->meta_value;
-			
-			// Decode JSON if it's valid, otherwise store as null
-			$decoded_value = null;
-			if (!empty($meta_value)) {
-				$decoded_value = json_decode($meta_value, true);
-				// If JSON decode fails, store original value
-				if (json_last_error() !== JSON_ERROR_NONE) {
-					$decoded_value = $meta_value;
-				}
-			}
-			
-			$weather_cache[$post_id] = $decoded_value;
-		}
-
-		return $weather_cache;
-	}
-
-	/**
-	 * Retrieves weather cache for a single city.
-	 *
-	 * Convenience method to get weather cache for a single city.
-	 * Useful when you only need data for one specific city.
-	 *
-	 * @since 1.0.0
-	 * @access public
-	 * @static
-	 *
-	 * @param int $city_id The city post ID.
-	 * @return array|null Weather cache data for the city, or null if not found.
-	 */
-	public static function get_weather_cache_for_city(int $city_id) {
-		$cities = [(object) [
-			'city_id' => $city_id,
-			'city_name' => '',
-			'country_name' => '',
-			'country_slug' => ''
-		]];
-
-		$result = self::get_weather_cache_for_cities($cities);
-		
-		return isset($result[$city_id]) ? $result[$city_id]['weather_cache'] : null;
-	}
-
-	/**
-	 * Checks if a city has valid weather cache data.
-	 *
-	 * Determines whether a city has cached weather data that can be used.
-	 *
-	 * @since 1.0.0
-	 * @access public
-	 * @static
-	 *
-	 * @param int $city_id The city post ID.
-	 * @return bool True if city has valid weather cache, false otherwise.
-	 */
-	public static function has_weather_cache(int $city_id): bool {
-		$cache_data = self::get_weather_cache_for_city($city_id);
-		return !empty($cache_data);
-	}
-
-	/**
-	 * Gets a summary of weather cache status for multiple cities.
-	 *
-	 * Returns a summary showing which cities have cache and which don't,
-	 * useful for determining which cities need fresh API calls.
-	 *
-	 * @since 1.0.0
-	 * @access public
-	 * @static
-	 *
-	 * @param array $cities Array of city objects from Cities_Repository.
-	 * @return array Summary of cache status for cities.
-	 */
-	public static function get_cache_status_summary(array $cities): array {
-		$weather_data = self::get_weather_cache_for_cities($cities);
-		
-		$summary = [
-			'total_cities' => count($cities),
-			'cached_cities' => 0,
-			'uncached_cities' => 0,
-			'cached_city_ids' => [],
-			'uncached_city_ids' => []
-		];
-
-		foreach ($weather_data as $city_id => $data) {
-			if ($data['has_cache']) {
-				$summary['cached_cities']++;
-				$summary['cached_city_ids'][] = $city_id;
-			} else {
-				$summary['uncached_cities']++;
-				$summary['uncached_city_ids'][] = $city_id;
+		if (!empty($rows)) {
+			foreach ($rows as $row) {
+				$results[(int) $row->post_id] = $row->meta_value;
 			}
 		}
 
-		return $summary;
+		return $results;
 	}
 }

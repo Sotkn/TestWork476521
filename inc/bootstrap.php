@@ -44,6 +44,11 @@ require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
 // Include weather client
 require_once __DIR__ . '/Api/class-weather-client.php';
 
+// Api
+require_once __DIR__ . '/Api/class-weather-client.php';
+
+// Include weather updater
+require_once __DIR__ . '/Services/class-weather-updater.php';
 
 
 
