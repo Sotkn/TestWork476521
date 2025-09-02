@@ -1,15 +1,4 @@
 <?php
-/**
- * Cities Repository Class
- *
- * Handles database operations for cities and countries data.
- * Provides methods to retrieve, search, and cache city information.
- *
- * @package Storefront_Child
- * @subpackage Repositories
- * @since 1.0.0
- */
-
 // inc/class-cities-repository.php
 defined('ABSPATH') || exit;
 

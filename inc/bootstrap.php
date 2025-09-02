@@ -40,5 +40,8 @@ require_once __DIR__ . '/Services/class-city-data.php';
 // Include cities repository with temperature
 require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
 
+// Include weather client
+require_once __DIR__ . '/Api/class-weather-client.php';
+
 
 
