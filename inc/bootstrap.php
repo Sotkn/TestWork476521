@@ -27,6 +27,7 @@ require_once __DIR__ . '/cities-hooks.php';
 
 // Include cities repository
 require_once __DIR__ . '/Repositories/class-cities-repository.php';
+require_once __DIR__ . '/Repositories/class-weather-cache-repository.php';
 
 // Include rate limiter service
 require_once __DIR__ . '/Services/class-rate-limiter.php';
@@ -42,6 +43,8 @@ require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
 
 // Include weather client
 require_once __DIR__ . '/Api/class-weather-client.php';
+
+
 
 
 
