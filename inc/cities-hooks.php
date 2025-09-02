@@ -20,6 +20,14 @@ add_action('delete_term', function($term, $tt_id, $taxonomy) {
 	}
 }, 10, 3);
 
-
+/**
+ * cron hook for weather updater
+ */
+add_action(
+	WeatherUpdater::CRON_HOOK,
+	[WeatherUpdater::class, 'cron_handler'],
+	10,
+	1
+);
 
 

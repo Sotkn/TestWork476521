@@ -83,11 +83,10 @@ class CitiesRepositoryWithTemp {
         }
         
         $cities_with_temp = [];
-        $require_update_cache_cities = [];
         
         // Get weather cache data for all cities at once to minimize database queries
         $weather_cities_cache_data = WeatherCacheRepository::get_weather_cache_for_cities($cities);
-        
+        $weather_updater = new WeatherUpdater();
         
         foreach ($cities as $city) {
             $city_with_temp = (array) $city;
@@ -97,9 +96,9 @@ class CitiesRepositoryWithTemp {
 
             // Handle cache management and weather data retrieval for this city
             $city_cache = $this->handle_cache_for_city($city, $weather_cities_cache_data);
-            error_log('City cache: ' . print_r($city_cache, true));
-            if ($city_cache['status'] != 'valid') {
-                $require_update_cache_cities[] = $city;
+            
+            if ($city_cache['status'] != 'valid' || $city_cache['temperature_celsius'] === null) {
+                $city_cache['status'] = ($weather_updater->add_to_queue($city->city_id) ? 'expected' : 'expired');
             }
             // Extract temperature from the weather info
             $temperature_celsius = $city_cache['temperature_celsius'] ?? null;
@@ -111,11 +110,8 @@ class CitiesRepositoryWithTemp {
             $cities_with_temp[] = (object) $city_with_temp;
         }
         
-        // Only request weather data if there are cities that need updates
-        error_log('Require update cache cities: ' . print_r($require_update_cache_cities, true));
-        if (!empty($require_update_cache_cities)) {
-            $this->request_weather_data($require_update_cache_cities);
-        }
+        $weather_updater->execute_queue();
+        
         
         return $cities_with_temp;
     }
@@ -178,34 +174,28 @@ class CitiesRepositoryWithTemp {
      * @return array Array containing temperature and status
      */
     private function check_cache_expiration($city, $city_cache): array {
-        // Check if cache has expired based on timestamp + TTL
-        if ($city_cache['timestamp'] + $city_cache['ttl'] < time()) {
-            // Cache expired, request fresh data
-            return ['temperature_celsius' => $city_cache['temperature_celsius'], 'status' => 'expired'];
-        } else {
-            // Cache is still valid
-            return ['temperature_celsius' => $city_cache['temperature_celsius'], 'status' => 'valid'];
+        $timestamp = $city_cache['timestamp'] ?? 0;
+        $ttl = $city_cache['ttl'] ?? 0;
+        $expired = ($timestamp + $ttl) < time();
+    
+        $temp = $city_cache['temperature_celsius'] ?? null;
+        $original_status = $city_cache['status'] ?? 'unknown';
+    
+        if ($expired) {
+            
+            return ['temperature_celsius' => $temp, 'status' => 'expired'];
         }
+    
+        
+        if ($original_status === 'success') {
+            return ['temperature_celsius' => $temp, 'status' => 'valid'];
+        }
+    
+        
+        return ['temperature_celsius' => $temp, 'status' => $original_status];
     }
 
-    /**
-     * Request fresh weather data for cities
-     * 
-     * Uses WeatherUpdater class to retrieve and store weather data
-     * for cities that need cache updates.
-     * 
-     * @param array $cities Array of city objects to update weather data for
-     * @return void
-     */
-    private function request_weather_data(array $cities): void {
-        if (!empty($cities)) {
-            
-            
-            $weather_updater = new WeatherUpdater();
-            $weather_updater->update_weather_data($cities);
-        }
-    }
-
+    
     /**
      * Flush cache from the base repository
      * 

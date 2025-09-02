@@ -22,6 +22,8 @@ require_once __DIR__ . '/Widgets/City_Temperature_Widget.php';
 // Include template tags
 require_once __DIR__ . '/template-tags-cities.php';
     
+// Include weather updater
+require_once __DIR__ . '/Services/class-weather-updater.php';
 // Include cities hooks
 require_once __DIR__ . '/cities-hooks.php';
 
@@ -31,6 +33,7 @@ require_once __DIR__ . '/Repositories/class-weather-cache-repository.php';
 
 // Include rate limiter service
 require_once __DIR__ . '/Services/class-rate-limiter.php';
+require_once __DIR__ . '/Services/class-weather-updater.php';
 
 // Include AJAX handlers
 require_once __DIR__ . '/Ajax/class-cities-search.php';
@@ -47,8 +50,8 @@ require_once __DIR__ . '/Api/class-weather-client.php';
 // Api
 require_once __DIR__ . '/Api/class-weather-client.php';
 
-// Include weather updater
-require_once __DIR__ . '/Services/class-weather-updater.php';
+
+
 
 
 
