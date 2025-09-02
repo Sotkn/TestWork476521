@@ -122,6 +122,9 @@
                 if (response.success) {
                     $tableContainer.html(response.data.html);
                     updateSearchHint(response.data.count, searchTerm);
+                    
+                    // Trigger custom event to notify other scripts that cities list was updated
+                    $(document).trigger('citiesListUpdated');
                 } else {
                     $tableContainer.html('<div class="error">' + citiesSearchAjax.noResults + '</div>');
                 }

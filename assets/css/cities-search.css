@@ -190,20 +190,91 @@
     .country-section {
         padding: 1rem;
     }
+
+    .city-info {
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: flex-end;
+    }
+    
+    .cache-status-indicator {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .cache-status-indicator .dashicons {
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
+    }
 }
 
-/* Animation for search results */
-.cities-list-wrapper {
-    animation: fadeIn 0.3s ease-in-out;
+/* Loading state for cache updates */
+.cache-status-updating {
+    animation: spin 1s linear infinite;
 }
 
-@keyframes fadeIn {
+@keyframes spin {
     from {
-        opacity: 0;
-        transform: translateY(10px);
+        transform: rotate(0deg);
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+        transform: rotate(360deg);
     }
+}
+
+/* Status update animation */
+.status-updated {
+    animation: statusUpdate 2s ease-in-out;
+}
+
+@keyframes statusUpdate {
+    0% {
+        background-color: #f8f9fa;
+        transform: scale(1);
+    }
+    50% {
+        background-color: #d4edda;
+        transform: scale(1.02);
+    }
+    100% {
+        background-color: #f8f9fa;
+        transform: scale(1);
+    }
+}
+
+/* Enhanced hover effects for cache status */
+.cache-status-indicator:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: help;
+}
+
+/* Tooltip styling for cache status */
+.cache-status-indicator[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 0.5rem;
+}
+
+.cache-status-indicator[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    margin-bottom: -0.5rem;
+    z-index: 1000;
 }

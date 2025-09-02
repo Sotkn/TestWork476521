@@ -211,4 +211,64 @@ class CitiesRepositoryWithTemp {
             error_log('Cities_Repository class not found when trying to flush cache');
         }
     }
+
+    /**
+     * Get cache status for specific cities by their IDs
+     * 
+     * This method is used by AJAX requests to check the current cache status
+     * of specific cities without performing a full search.
+     * 
+     * @param array $city_ids Array of city IDs to check
+     * @return array Array of cache updates keyed by city_id
+     */
+    public function get_cache_status_for_cities(array $city_ids): array {
+        if (empty($city_ids)) {
+            return [];
+        }
+
+        // Get city data for the specified IDs
+        $cities = [];
+        foreach ($city_ids as $city_id) {
+            if (class_exists('Cities_Repository')) {
+                $city_data = Cities_Repository::get_city_by_id($city_id);
+                if ($city_data) {
+                    $cities[] = $city_data;
+                }
+            }
+        }
+
+        if (empty($cities)) {
+            return [];
+        }
+
+        // Get weather cache data for these cities
+        $weather_cities_cache_data = WeatherCacheRepository::get_weather_cache_for_cities($cities);
+        $weather_updater = new WeatherUpdater();
+        
+        $cache_updates = [];
+        
+        foreach ($cities as $city) {
+            $city_id = $city->city_id ?? 0;
+            if ($city_id <= 0) continue;
+
+            // Handle cache management for this city
+            $city_cache = $this->handle_cache_for_city($city, $weather_cities_cache_data);
+            
+            // If status is not valid, try to update it
+            if ($city_cache['status'] != 'valid' || $city_cache['temperature_celsius'] === null) {
+                $city_cache['status'] = ($weather_updater->add_to_queue($city_id) ? 'expected' : 'expired');
+            }
+
+            // Store the update data
+            $cache_updates[$city_id] = [
+                'status' => $city_cache['status'],
+                'temperature' => $city_cache['temperature_celsius']
+            ];
+        }
+
+        // Execute the weather update queue
+        $weather_updater->execute_queue();
+        
+        return $cache_updates;
+    }
 }
