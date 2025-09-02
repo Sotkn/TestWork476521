@@ -92,6 +92,8 @@ function get_cache_status_icon($status) {
 			return '<span class="dashicons dashicons-update"></span>';
 		case 'unavailable':
 			return '<span class="dashicons dashicons-no-alt"></span>';
+		case 'abort':
+			return '<span class="dashicons dashicons-dismiss"></span>';
 		default:
 			return '<span class="dashicons dashicons-help"></span>';
 	}

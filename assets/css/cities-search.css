@@ -172,6 +172,70 @@
     box-shadow: 0 1px 3px rgba(0, 124, 186, 0.3);
 }
 
+/* Cache status indicator */
+.cache-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #6c757d;
+    color: white;
+    cursor: help;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.cache-status-indicator .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+/* Cache status colors */
+.cache-status-valid {
+    background-color: #28a745;
+}
+
+.cache-status-expired {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.cache-status-expected {
+    background-color: #17a2b8;
+}
+
+.cache-status-unavailable {
+    background-color: #6c757d;
+}
+
+.cache-status-abort {
+    background-color: #dc3545;
+}
+
+.cache-status-unknown {
+    background-color: #6c757d;
+}
+
+/* Aborted city styling */
+.city-aborted {
+    opacity: 0.6;
+    background-color: #f8f9fa;
+    border-left: 3px solid #dc3545;
+}
+
+.city-aborted .cache-status-indicator {
+    background-color: #dc3545;
+    color: white;
+}
+
+.city-aborted .city-name {
+    color: #6c757d;
+    text-decoration: line-through;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .search-form {

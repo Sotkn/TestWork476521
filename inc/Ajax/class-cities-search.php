@@ -34,14 +34,6 @@ class CitiesSearch {
         add_action('wp_ajax_cities_search', [$this, 'handle_cities_search']);
         add_action('wp_ajax_nopriv_cities_search', [$this, 'handle_cities_search']);
         
-        // Register cache status check action
-        add_action('wp_ajax_check_cache_status', [$this, 'handle_check_cache_status']);
-        add_action('wp_ajax_nopriv_check_cache_status', [$this, 'handle_check_cache_status']);
-        
-        // Register cities status update action
-        add_action('wp_ajax_update_cities_status', [$this, 'handle_update_cities_status']);
-        add_action('wp_ajax_nopriv_update_cities_status', [$this, 'handle_update_cities_status']);
-        
         // Enqueue assets
         add_action('wp_enqueue_scripts', [$this, 'enqueue_cities_search_assets']);
     }
@@ -80,73 +72,6 @@ class CitiesSearch {
     }
 
     /**
-     * Handle AJAX request to check cache status for specific cities
-     */
-    public function handle_check_cache_status() {
-        // Verify nonce for security
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'cities_search_nonce')) {
-            wp_send_json_error(['message' => __('Security check failed', 'storefront-child')], 403);
-        }
-
-        // Check rate limiting
-        if (!$this->rate_limiter->check_rate_limit()) {
-            wp_send_json_error(['message' => __('Too many requests. Please try again later.', 'storefront-child')], 429);
-        }
-
-        // Validate city IDs
-        $city_ids = $this->validate_city_ids($_POST['city_ids'] ?? []);
-        if (is_wp_error($city_ids)) {
-            wp_send_json_error(['message' => $city_ids->get_error_message()], 400);
-        }
-
-        if (empty($city_ids)) {
-            wp_send_json_success(['cache_updates' => []]);
-        }
-
-        // Get updated cache status for the specified cities
-        $cities_repo_with_temp = new CitiesRepositoryWithTemp();
-        $cache_updates = $cities_repo_with_temp->get_cache_status_for_cities($city_ids);
-        
-        wp_send_json_success([
-            'cache_updates' => $cache_updates
-        ]);
-    }
-
-    /**
-     * Handle AJAX request to update cities status
-     */
-    public function handle_update_cities_status() {
-        // Verify nonce for security
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'cities_search_nonce')) {
-            wp_send_json_error(['message' => __('Security check failed', 'storefront-child')], 403);
-        }
-
-        // Check rate limiting
-        if (!$this->rate_limiter->check_rate_limit()) {
-            wp_send_json_error(['message' => __('Too many requests. Please try again later.', 'storefront-child')], 429);
-        }
-
-        // Validate city IDs
-        $city_ids = $this->validate_city_ids($_POST['city_ids'] ?? []);
-        if (is_wp_error($city_ids)) {
-            wp_send_json_error(['message' => $city_ids->get_error_message()], 400);
-        }
-
-        if (empty($city_ids)) {
-            wp_send_json_success(['message' => __('No cities to update.', 'storefront-child')]);
-        }
-
-        // TODO: Implement actual cities status update logic here
-        // For now, just log the request and return success
-        error_log('Cities status update requested for city IDs: ' . implode(', ', $city_ids));
-        
-        wp_send_json_success([
-            'message' => sprintf(__('Status update initiated for %d cities.', 'storefront-child'), count($city_ids)),
-            'city_count' => count($city_ids)
-        ]);
-    }
-
-    /**
      * Validate search term input
      * 
      * @param string $search_term Raw search term
@@ -169,35 +94,6 @@ class CitiesSearch {
     }
 
     /**
-     * Validate city IDs input
-     * 
-     * @param array $city_ids Raw city IDs array
-     * @return array|WP_Error Validated city IDs array or error
-     */
-    private function validate_city_ids($city_ids) {
-        if (!is_array($city_ids)) {
-            return new WP_Error('invalid_city_ids', __('City IDs must be an array.', 'storefront-child'));
-        }
-
-        $validated_ids = [];
-        foreach ($city_ids as $id) {
-            $city_id = intval($id);
-            if ($city_id > 0) {
-                $validated_ids[] = $city_id;
-            }
-        }
-
-        // Limit the number of cities that can be checked at once
-        if (count($validated_ids) > 50) {
-            return new WP_Error('too_many_cities', __('Too many cities requested. Maximum 50 allowed.', 'storefront-child'));
-        }
-
-        return $validated_ids;
-    }
-    
-
-    
-    /**
      * Enqueue cities search assets
      */
     public function enqueue_cities_search_assets() {
@@ -215,19 +111,6 @@ class CitiesSearch {
                 'nonce' => wp_create_nonce('cities_search_nonce'),
                 'searching' => __('Searching...', 'storefront-child'),
                 'noResults' => __('No cities found.', 'storefront-child')
-            ]);
-
-            wp_enqueue_script(
-                'cities-status-update',
-                get_stylesheet_directory_uri() . '/assets/js/cities-status-update.js',
-                ['jquery'],
-                '1.0.0',
-                true
-            );
-
-            wp_localize_script('cities-status-update', 'citiesStatusUpdateAjax', [
-                'ajaxurl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('cities_search_nonce')
             ]);
 
             wp_enqueue_style(

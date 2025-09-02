@@ -118,6 +118,40 @@ class Cities_Repository {
 	}
 
 	/**
+	 * Retrieves a single city by its ID.
+	 *
+	 * Fetches a specific city by its post ID with basic city information.
+	 *
+	 * @since 1.0.0
+	 * @access public
+	 * @static
+	 *
+	 * @param int $city_id The city post ID to retrieve.
+	 * @return object|null City data object or null if not found.
+	 */
+	public static function get_city_by_id(int $city_id) {
+		global $wpdb;
+
+		// SQL query to get city by ID
+		$sql = "
+			SELECT 
+				p.ID AS city_id,
+				p.post_title AS city_name,
+				p.post_status AS city_status
+			FROM {$wpdb->posts} p
+			WHERE p.ID = %d 
+			  AND p.post_type = 'cities'
+			  AND p.post_status = 'publish'
+		";
+
+		$result = $wpdb->get_row(
+			$wpdb->prepare($sql, $city_id)
+		);
+
+		return $result ?: null;
+	}
+
+	/**
 	 * Flushes the cached cities and countries data.
 	 *
 	 * Removes the transient cache for cities with countries data.

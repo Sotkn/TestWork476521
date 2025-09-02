@@ -187,7 +187,7 @@ class CitiesRepositoryWithTemp {
         }
     
         
-        if ($original_status === 'success') {
+        if ($original_status === 'valid') {
             return ['temperature_celsius' => $temp, 'status' => 'valid'];
         }
     
