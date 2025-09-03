@@ -162,11 +162,11 @@
                     .html(getCacheStatusIcon(cityData.status));
             }
     
-            // температура
+            
             const $info = $cityItem.find('.city-info');
             let $temp = $cityItem.find('.city-temperature');
     
-            // убрать возможный <em> "Temperature data not available"
+            // remove possible <em> "Temperature data not available"
             $info.find('em').remove();
     
             if (cityData.temperature !== null && cityData.temperature !== undefined) {
@@ -180,9 +180,9 @@
                     $temp.text(`${cityData.temperature}°C`).show();
                 }
             } else {
-                // нет температуры — скрываем спан, при желании можно показать <em>
+                // no temperature - hide span, you can show <em> if you want
                 if ($temp.length) $temp.hide();
-                // по желанию: $info.append('<em>Temperature data not available</em>');
+                
             }
     
             $cityItem.addClass('status-updated');

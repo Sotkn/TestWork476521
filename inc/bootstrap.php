@@ -48,7 +48,7 @@ require_once __DIR__ . '/Ajax/class-cities-search.php';
 require_once __DIR__ . '/Ajax/class-cities-update.php';
 
 // Include city data service
-require_once __DIR__ . '/Services/FAKE-class-city-data.php';
+//require_once __DIR__ . '/Services/FAKE-class-city-data.php';
 
 // Include cities repository with temperature
 require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
