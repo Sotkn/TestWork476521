@@ -28,7 +28,9 @@ require_once __DIR__ . '/Api/class-weather-client.php';
 // Include services (depend on repositories and API client)
 require_once __DIR__ . '/Services/class-rate-limiter.php';
 require_once __DIR__ . '/Services/class-weather-updater.php';
+require_once __DIR__ . '/Services/class-weather-update-manager.php';
 require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
+
 
 // Include post types, taxonomies, and metaboxes
 require_once __DIR__ . '/PostTypes/Cities/register.php';

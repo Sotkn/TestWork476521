@@ -19,7 +19,7 @@ defined('ABSPATH') || exit;
  * - city_id   (int, required)
  * - city_name (string, optional)
  */
-final class WeatherCacheRepository {
+class WeatherCacheRepository {
 
 	/** Meta key for weather cache */
 	private const META_KEY = '__weather_cache';
