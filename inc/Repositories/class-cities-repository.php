@@ -1,18 +1,17 @@
 <?php
-// inc/class-cities-repository.php
-defined('ABSPATH') || exit;
-
 /**
  * Cities Repository Class
  *
- * A static class that manages database queries for cities and countries.
- * Implements caching strategies to improve performance and provides
- * search functionality for city and country data.
+ * Manages database queries for cities and countries with caching support.
+ * Provides search functionality and data retrieval methods for city-related operations.
  *
  * @package Storefront_Child
  * @subpackage Repositories
  * @since 1.0.0
  */
+
+defined('ABSPATH') || exit;
+
 class Cities_Repository {
 
 	/**
@@ -60,6 +59,12 @@ class Cities_Repository {
 			$wpdb->prepare($sql, 'countries', 'cities')
 		);
 
+		// Check for database errors
+		if ($wpdb->last_error) {
+			error_log('Cities Repository Database Error: ' . $wpdb->last_error);
+			return [];
+		}
+
 		// Cache results for one hour to improve performance
 		set_transient($cache_key, $results, HOUR_IN_SECONDS);
 
@@ -82,14 +87,18 @@ class Cities_Repository {
 	 *               Each object has: country_name, country_slug, city_id, city_name.
 	 */
 	public static function search_cities_and_countries(string $search_term): array {
+		// Validate and sanitize input
+		$search_term = sanitize_text_field(trim($search_term));
+		
 		// Return all results if search term is too short
-		if (strlen(trim($search_term)) < 2) {
+		if (strlen($search_term) < 2) {
 			return self::get_cities_with_countries();
 		}
 
 		global $wpdb;
+		
 		// Prepare search term for LIKE query with proper escaping
-		$search_term = '%' . $wpdb->esc_like(trim($search_term)) . '%';
+		$escaped_search_term = '%' . $wpdb->esc_like($search_term) . '%';
 
 		// SQL query to search cities and countries by name
 		$sql = "
@@ -111,8 +120,14 @@ class Cities_Repository {
 
 		// Execute the search query with proper sanitization
 		$results = $wpdb->get_results(
-			$wpdb->prepare($sql, 'countries', 'cities', $search_term, $search_term)
+			$wpdb->prepare($sql, 'countries', 'cities', $escaped_search_term, $escaped_search_term)
 		);
+
+		// Check for database errors
+		if ($wpdb->last_error) {
+			error_log('Cities Repository Search Error: ' . $wpdb->last_error);
+			return [];
+		}
 
 		return $results ?: [];
 	}
@@ -121,6 +136,7 @@ class Cities_Repository {
 	 * Retrieves a single city by its ID.
 	 *
 	 * Fetches a specific city by its post ID with basic city information.
+	 * Validates input to ensure positive integer ID.
 	 *
 	 * @since 1.0.0
 	 * @access public
@@ -129,7 +145,12 @@ class Cities_Repository {
 	 * @param int $city_id The city post ID to retrieve.
 	 * @return object|null City data object or null if not found.
 	 */
-	public static function get_city_by_id(int $city_id) {
+	public static function get_city_by_id(int $city_id): ?object {
+		// Validate input
+		if ($city_id <= 0) {
+			return null;
+		}
+
 		global $wpdb;
 
 		// SQL query to get city by ID
@@ -148,6 +169,12 @@ class Cities_Repository {
 			$wpdb->prepare($sql, $city_id)
 		);
 
+		// Check for database errors
+		if ($wpdb->last_error) {
+			error_log('Cities Repository Get City Error: ' . $wpdb->last_error);
+			return null;
+		}
+
 		return $result ?: null;
 	}
 
@@ -161,9 +188,26 @@ class Cities_Repository {
 	 * @access public
 	 * @static
 	 *
-	 * @return void
+	 * @return bool True on successful deletion, false otherwise.
 	 */
-	public static function flush_cache(): void {
-		delete_transient('cities_with_countries_v1');
+	public static function flush_cache(): bool {
+		return delete_transient('cities_with_countries_v1');
+	}
+
+	/**
+	 * Invalidates cache when cities or countries are updated.
+	 *
+	 * This method should be called whenever cities or countries are
+	 * created, updated, or deleted to ensure cache consistency.
+	 * Alias for flush_cache() method.
+	 *
+	 * @since 1.0.0
+	 * @access public
+	 * @static
+	 *
+	 * @return bool True on successful cache invalidation, false otherwise.
+	 */
+	public static function invalidate_cache(): bool {
+		return self::flush_cache();
 	}
 }

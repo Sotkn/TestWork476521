@@ -240,6 +240,7 @@ class CitiesUpdate {
      * Loads the required JavaScript file and localizes AJAX data
      * only on the cities list page template.
      */
+    
     public function enqueue_cities_update_assets() {
         if (is_page_template('page-templates/cities-list.php')) {
             wp_enqueue_script(
