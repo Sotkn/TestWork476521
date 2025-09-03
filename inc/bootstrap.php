@@ -7,6 +7,9 @@ if (!function_exists('add_action')) {
     return;
 }
 
+// Include configuration file
+require_once __DIR__ . '/config.php';
+
 
 
 
@@ -53,9 +56,6 @@ require_once __DIR__ . '/Ajax/class-cities-update.php';
 require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
 
 // Include weather client
-require_once __DIR__ . '/Api/class-weather-client.php';
-
-// Api
 require_once __DIR__ . '/Api/class-weather-client.php';
 
 

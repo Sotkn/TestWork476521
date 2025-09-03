@@ -108,10 +108,13 @@ class WeatherUpdater {
 
 		$weather_data = $this->weather_client->get_weather_by_coordinates($latitude, $longitude);
 
+		
 		if (is_wp_error($weather_data)) {
 			$this->store_weather_cache($city_id, null, 'api_error');
 			return;
 		}
+		
+	
 
 		$temperature_celsius = $weather_data['main']['temp'] ?? null;
 
