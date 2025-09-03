@@ -72,8 +72,7 @@ final class WeatherCacheRepository {
 				$result[$post_id]['weather_cache'] = $decoded;
 			}
 		}
-		error_log('Weather cache data: ' . print_r($result, true));
-		error_log('Raw meta data: ' . print_r($raw_meta, true));
+		
 		return $result;
 	}
 
@@ -128,8 +127,7 @@ final class WeatherCacheRepository {
 		$params  = array_merge([self::META_KEY], $ids);
 		$sql_prepared = $wpdb->prepare($sql, ...$params);
 		
-		error_log('WeatherCacheRepository SQL query: ' . $sql_prepared);
-		error_log('WeatherCacheRepository searching for IDs: ' . implode(', ', $ids));
+		
 		
 		$rows    = $wpdb->get_results($sql_prepared);
 		$results = [];
@@ -140,8 +138,7 @@ final class WeatherCacheRepository {
 			}
 		}
 		
-		error_log('WeatherCacheRepository query results count: ' . count($rows));
-		error_log('WeatherCacheRepository raw results: ' . print_r($rows, true));
+		
 
 		return $results;
 	}

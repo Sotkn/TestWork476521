@@ -23,7 +23,7 @@ class CitiesRepositoryWithTemp {
     /**
      * Constructor
      * 
-     * Initializes the service. CityData dependency removed as it's not used.
+     * Initializes the service. 
      */
     public function __construct() {
         // No dependencies needed for now
@@ -128,7 +128,7 @@ class CitiesRepositoryWithTemp {
      */
     private function handle_cache_for_city($city, array $weather_cache_data): array {
         // Check if cache exists for this city
-        $city_cache = $this->cache_if_exist($city, $weather_cache_data);
+        $city_cache = $this->cache_for_city_if_exist($city, $weather_cache_data);
         
         if ($city_cache) {
             // Cache exists, check if it's still valid
@@ -136,7 +136,7 @@ class CitiesRepositoryWithTemp {
             return $temp_and_status;
         } else {
             // No cache exists, request fresh weather data
-            return ['temperature_celsius' => null, 'status' => 'unavailable'];
+            return ['temperature_celsius' => null, 'status' => null];
         }
     }
     
@@ -147,7 +147,7 @@ class CitiesRepositoryWithTemp {
      * @param array $weather_cache_data Array of weather cache data
      * @return array|null City cache data if exists, null otherwise
      */
-    private function cache_if_exist($city, array $weather_cache_data): ?array {
+    private function cache_for_city_if_exist($city, array $weather_cache_data): ?array {
         $id = $city->city_id ?? 0;
     
         if (
@@ -212,63 +212,5 @@ class CitiesRepositoryWithTemp {
         }
     }
 
-    /**
-     * Get cache status for specific cities by their IDs
-     * 
-     * This method is used by AJAX requests to check the current cache status
-     * of specific cities without performing a full search.
-     * 
-     * @param array $city_ids Array of city IDs to check
-     * @return array Array of cache updates keyed by city_id
-     */
-    public function get_cache_status_for_cities(array $city_ids): array {
-        if (empty($city_ids)) {
-            return [];
-        }
-
-        // Get city data for the specified IDs
-        $cities = [];
-        foreach ($city_ids as $city_id) {
-            if (class_exists('Cities_Repository')) {
-                $city_data = Cities_Repository::get_city_by_id($city_id);
-                if ($city_data) {
-                    $cities[] = $city_data;
-                }
-            }
-        }
-
-        if (empty($cities)) {
-            return [];
-        }
-
-        // Get weather cache data for these cities
-        $weather_cities_cache_data = WeatherCacheRepository::get_weather_cache_for_cities($cities);
-        $weather_updater = new WeatherUpdater();
-        
-        $cache_updates = [];
-        
-        foreach ($cities as $city) {
-            $city_id = $city->city_id ?? 0;
-            if ($city_id <= 0) continue;
-
-            // Handle cache management for this city
-            $city_cache = $this->handle_cache_for_city($city, $weather_cities_cache_data);
-            
-            // If status is not valid, try to update it
-            if ($city_cache['status'] != 'valid' || $city_cache['temperature_celsius'] === null) {
-                $city_cache['status'] = ($weather_updater->add_to_queue($city_id) ? 'expected' : 'expired');
-            }
-
-            // Store the update data
-            $cache_updates[$city_id] = [
-                'status' => $city_cache['status'],
-                'temperature' => $city_cache['temperature_celsius']
-            ];
-        }
-
-        // Execute the weather update queue
-        $weather_updater->execute_queue();
-        
-        return $cache_updates;
-    }
+    
 }

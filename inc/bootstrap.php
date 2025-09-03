@@ -7,10 +7,8 @@ if (!function_exists('add_action')) {
     return;
 }
 
-// Add debugging
-if (defined('WP_DEBUG') && WP_DEBUG) {
-    error_log('Bootstrap file loading...');
-}
+
+
 
 define('THEME_PATH', get_stylesheet_directory());
 define('THEME_URL',  get_stylesheet_directory_uri());
@@ -39,14 +37,7 @@ require_once __DIR__ . '/cities-hooks.php';
 require_once __DIR__ . '/Repositories/class-cities-repository.php';
 require_once __DIR__ . '/Repositories/class-weather-cache-repository.php';
 
-// Debug: Check if Cities_Repository class is loaded
-if (defined('WP_DEBUG') && WP_DEBUG) {
-    if (class_exists('Cities_Repository')) {
-        error_log('Cities_Repository class loaded successfully');
-    } else {
-        error_log('ERROR: Cities_Repository class not loaded!');
-    }
-}
+
 
 // Include rate limiter service
 require_once __DIR__ . '/Services/class-rate-limiter.php';
@@ -57,7 +48,7 @@ require_once __DIR__ . '/Ajax/class-cities-search.php';
 require_once __DIR__ . '/Ajax/class-cities-update.php';
 
 // Include city data service
-require_once __DIR__ . '/Services/class-city-data.php';
+require_once __DIR__ . '/Services/FAKE-class-city-data.php';
 
 // Include cities repository with temperature
 require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
@@ -68,9 +59,6 @@ require_once __DIR__ . '/Api/class-weather-client.php';
 // Api
 require_once __DIR__ . '/Api/class-weather-client.php';
 
-if (defined('WP_DEBUG') && WP_DEBUG) {
-    error_log('Bootstrap file loaded successfully');
-}
 
 
 
