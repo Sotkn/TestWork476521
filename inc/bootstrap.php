@@ -30,6 +30,16 @@ require_once __DIR__ . '/Services/class-rate-limiter.php';
 require_once __DIR__ . '/Services/class-weather-updater.php';
 require_once __DIR__ . '/Services/class-weather-update-manager.php';
 require_once __DIR__ . '/Services/class-cities-repository-with-temp.php';
+require_once __DIR__ . '/Services/class-weather-cron-manager.php';
+
+
+// Include admin classes
+require_once __DIR__ . '/Admin/class-weather-cron-admin.php';
+
+// Include CLI classes (only when WP-CLI is available)
+if (defined('WP_CLI') && WP_CLI) {
+	require_once __DIR__ . '/CLI/class-weather-cron-cli.php';
+}
 
 
 // Include post types, taxonomies, and metaboxes

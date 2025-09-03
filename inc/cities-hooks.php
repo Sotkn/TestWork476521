@@ -58,4 +58,27 @@ add_action(
 	1
 );
 
+/**
+ * Initialize the weather cron manager
+ */
+add_action('init', function() {
+	try {
+		$cron_manager = new Weather_Cron_Manager();
+		$cron_manager->init();
+	} catch (Exception $e) {
+		error_log('Failed to initialize weather cron manager: ' . $e->getMessage());
+	}
+}, 20);
+
+/**
+ * Initialize the weather cron admin interface
+ */
+add_action('init', function() {
+	try {
+		new Weather_Cron_Admin();
+	} catch (Exception $e) {
+		error_log('Failed to initialize weather cron admin: ' . $e->getMessage());
+	}
+}, 30);
+
 
