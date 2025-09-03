@@ -42,24 +42,26 @@ class City_Temperature_Widget extends WP_Widget {
         if ( ! empty( $instance['title'] ) ) {
             echo $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
         }
-
-        echo '<div class="city-temperature-widget">';
-        echo '<h3>' . esc_html( $city->post_title ) . '</h3>';
-        
-        if ( $temperature !== null ) {
-            echo '<p><strong>' . __( 'Temperature:', 'storefront-child' ) . '</strong> ' . esc_html( $temperature ) . '°C</p>';
-        } else {
-            echo '<p><em>' . __( 'Temperature data not available', 'storefront-child' ) . '</em></p>';
-        }
-        
-        // Add cache status indicator like the cities list
-        echo '<span class="cache-status-indicator cache-status-' . esc_attr( $cache_status ) . '" title="' . esc_attr( ucfirst( $cache_status ) ) . ' cache status">';
-        echo $this->get_cache_status_icon( $cache_status );
-        echo '</span>';
-        
-        echo '</div>';
-
+        ?>
+        <li class="city-item" data-city-id="<?php echo esc_attr( $city_id ); ?>">
+            <span class="city-name"><?php echo esc_html( $city->post_title ); ?></span>
+            <div class="city-info">
+                <?php if ( $temperature !== null ) : ?>
+                    <span class="city-temperature"><?php echo esc_html( $temperature ); ?>°C</span>
+                <?php endif; ?>
+                <span class="cache-status-indicator cache-status-<?php echo esc_attr( $cache_status ); ?>"
+                    title="<?php echo esc_attr( ucfirst( $cache_status ) ); ?> cache status">
+                    <?php echo $this->get_cache_status_icon( $cache_status ); ?>
+                </span>
+            </div>
+            <input type="hidden"
+                class="cache-status-field"
+                value="<?php echo esc_attr( $cache_status ); ?>"
+                data-city-id="<?php echo esc_attr( $city_id ); ?>" />
+        </li>
+        <?php
         echo $args['after_widget'];
+
     }
 
     /**

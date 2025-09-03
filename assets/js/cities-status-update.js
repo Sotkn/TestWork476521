@@ -141,64 +141,56 @@
      * @param {Object} cityData City data with status and temperature
      */
     function updateCityInDOM(cityId, cityData) {
-        // Validate that we have valid city data from AJAX response
-        if (!cityData || typeof cityData !== 'object' || !cityData.status) {
-            console.log(`Skipping DOM update for city ${cityId} - invalid or missing city data from AJAX response`);
-            return;
-        }
-
-        const $cityItem = $(`.city-item[data-city-id="${cityId}"]`);
-        
-        if ($cityItem.length === 0) {
-            console.log(`City item with ID ${cityId} not found in DOM`);
-            return;
-        }
-
-        console.log(`Updating DOM for city ${cityId}:`, cityData);
-
-        // Update the hidden cache status field
-        const $statusField = $cityItem.find('.cache-status-field');
-        if ($statusField.length > 0) {
-            $statusField.val(cityData.status);
-            console.log(`Updated status field for city ${cityId} to: ${cityData.status}`);
-        }
-
-        // Update the status indicator
-        const $statusIndicator = $cityItem.find('.cache-status-indicator');
-        if ($statusIndicator.length > 0) {
-            $statusIndicator
-                .removeClass()
-                .addClass(`cache-status-indicator cache-status-${cityData.status}`)
-                .attr('title', cityData.status.charAt(0).toUpperCase() + cityData.status.slice(1) + ' cache status')
-                .html(getCacheStatusIcon(cityData.status));
-            
-            console.log(`Updated status indicator for city ${cityId} to: ${cityData.status}`);
-        }
-
-        // Update temperature display if available
-        if (cityData.temperature !== null) {
-            let $temperatureDisplay = $cityItem.find('.city-temperature');
-            
-            if ($temperatureDisplay.length === 0) {
-                // Create temperature display if it doesn't exist
-                $cityItem.find('.city-info').prepend(
-                    `<span class="city-temperature">${cityData.temperature}°C</span>`
-                );
-                console.log(`Created temperature display for city ${cityId}: ${cityData.temperature}°C`);
-            } else {
-                $temperatureDisplay.text(`${cityData.temperature}°C`);
-                console.log(`Updated temperature display for city ${cityId} to: ${cityData.temperature}°C`);
+        if (!cityData || typeof cityData !== 'object' || !cityData.status) return;
+    
+        const $cityItems = $(`[data-city-id="${cityId}"]`);
+        if ($cityItems.length === 0) return;
+    
+        $cityItems.each(function() {
+            const $cityItem = $(this);
+    
+            // статус
+            const $statusField = $cityItem.find('.cache-status-field');
+            if ($statusField.length) $statusField.val(cityData.status);
+    
+            const $statusIndicator = $cityItem.find('.cache-status-indicator');
+            if ($statusIndicator.length) {
+                $statusIndicator
+                    .removeClass()
+                    .addClass(`cache-status-indicator cache-status-${cityData.status}`)
+                    .attr('title', cityData.status.charAt(0).toUpperCase() + cityData.status.slice(1) + ' cache status')
+                    .html(getCacheStatusIcon(cityData.status));
             }
-        }
-
-        // Add visual feedback for status change
-        $cityItem.addClass('status-updated');
-        setTimeout(() => {
-            $cityItem.removeClass('status-updated');
-        }, 2000);
-
-        console.log(`DOM update completed for city ${cityId}`);
+    
+            // температура
+            const $info = $cityItem.find('.city-info');
+            let $temp = $cityItem.find('.city-temperature');
+    
+            // убрать возможный <em> "Temperature data not available"
+            $info.find('em').remove();
+    
+            if (cityData.temperature !== null && cityData.temperature !== undefined) {
+                if ($temp.length === 0) {
+                    if ($info.length) {
+                        $info.prepend(`<span class="city-temperature">${cityData.temperature}°C</span>`);
+                    } else {
+                        $cityItem.prepend(`<span class="city-temperature">${cityData.temperature}°C</span>`);
+                    }
+                } else {
+                    $temp.text(`${cityData.temperature}°C`).show();
+                }
+            } else {
+                // нет температуры — скрываем спан, при желании можно показать <em>
+                if ($temp.length) $temp.hide();
+                // по желанию: $info.append('<em>Temperature data not available</em>');
+            }
+    
+            $cityItem.addClass('status-updated');
+            setTimeout(() => $cityItem.removeClass('status-updated'), 2000);
+        });
     }
+    
+    
 
     /**
      * Get cache status icon HTML
