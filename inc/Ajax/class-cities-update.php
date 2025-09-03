@@ -242,7 +242,7 @@ class CitiesUpdate {
      */
     
     public function enqueue_cities_update_assets() {
-        if (is_page_template('page-templates/cities-list.php')) {
+        if (!is_admin()) {
             wp_enqueue_script(
                 'cities-status-update',
                 get_stylesheet_directory_uri() . '/assets/js/cities-status-update.js',
