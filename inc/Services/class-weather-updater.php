@@ -76,7 +76,7 @@ class WeatherUpdater {
 
 			// Small delay to avoid overwhelming the API
 			wp_schedule_single_event($now + $offset, self::CRON_HOOK, [$city_id]);
-			$offset += 2; // 2 seconds step
+			$offset += 1; // 1 seconds step
 		}
 
 		// Push cron immediately (if DISABLE_WP_CRON is not disabled)

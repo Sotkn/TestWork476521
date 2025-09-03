@@ -3,6 +3,9 @@
 // inc/Ajax/class-cities-update.php
 defined('ABSPATH') || exit;
 
+// Require the Rate_Limiter class
+require_once get_stylesheet_directory() . '/inc/Services/class-rate-limiter.php';
+
 /**
  * Cities Update AJAX Handler Class
  * 
@@ -15,9 +18,18 @@ defined('ABSPATH') || exit;
 class CitiesUpdate {
     
     /**
+     * Rate limiter instance
+     */
+    private $rate_limiter;
+    
+    /**
      * Initialize the class
      */
     public function __construct() {
+        // Initialize rate limiter with larger limits for city updates
+        // Allow 50 requests per 5 minutes (300 seconds)
+        $this->rate_limiter = new Rate_Limiter('cities_update', 50, 300);
+        
         $this->init_hooks();
     }
     
@@ -37,6 +49,17 @@ class CitiesUpdate {
      * Handle AJAX request to update cities status
      */
     public function handle_update_cities_status() {
+        // Check rate limit before processing
+        if (!$this->rate_limiter->check_rate_limit()) {
+            $remaining_time = $this->rate_limiter->get_reset_time();
+            wp_send_json_error([
+                'message' => 'Rate limit exceeded. Please try again later.',
+                'reset_time' => $remaining_time,
+                'remaining_requests' => 0
+            ]);
+            return;
+        }
+        
         // Log the received city IDs
         error_log('=== Cities Update AJAX Request ===');
         error_log('POST data: ' . print_r($_POST, true));
