@@ -10,8 +10,6 @@
      * Initialize the status update functionality
      */
     function init() {
-        console.log('Cities Status Update JS loaded and initialized');
-        
         // Update statuses when page loads
         updateCityStatuses();
         
@@ -23,8 +21,6 @@
      * Collect cities with status "expected" and send to server
      */
     function updateCityStatuses() {
-        console.log('updateCityStatuses called - looking for cities with expected status');
-        
         // Send requests until no more cities have "expected" status
         let requestCount = 0;
         const maxRequests = 20;
@@ -34,17 +30,10 @@
             
             if (citiesWithExpectedStatus.length > 0 && requestCount < maxRequests) {
                 requestCount++;
-                console.log(`Sending request ${requestCount}/${maxRequests} for cities:`, citiesWithExpectedStatus);
                 sendCitiesForUpdate(citiesWithExpectedStatus);
                 
                 // Schedule next request only if there are still cities with expected status
                 setTimeout(sendNextRequest, 1000);
-            } else {
-                if (citiesWithExpectedStatus.length === 0) {
-                    console.log('No more cities with expected status - stopping requests');
-                } else {
-                    console.log(`Reached maximum request limit (${maxRequests}) - stopping requests`);
-                }
             }
         }
         
@@ -60,28 +49,17 @@
     function collectCitiesWithExpiredStatus() {
         const citiesWithExpiredStatus = [];
         
-        console.log('Searching for cities with expected status...');
-        console.log('Total city items found:', $('.city-item').length);
-        
         $('.city-item').each(function() {
             const $cityItem = $(this);
             const cityId = $cityItem.data('city-id');
             const cacheStatus = $cityItem.find('.cache-status-field').val();
             
-            console.log(`City ID: ${cityId}, Cache Status: ${cacheStatus}`);
-            
             // Only collect cities with status "expected" - exclude "no_coordinates" and other statuses
             if (cacheStatus === 'expected') {
                 citiesWithExpiredStatus.push(cityId);
-                console.log(`Added city ${cityId} to expected list`);
-            } else if (cacheStatus === 'no_coordinates') {
-                console.log(`Skipping city ${cityId} - has no_coordinates status`);
-            } else {
-                console.log(`Skipping city ${cityId} - status is ${cacheStatus} (not expected)`);
             }
         });
         
-        console.log('Cities with expected status collected:', citiesWithExpiredStatus);
         return citiesWithExpiredStatus;
     }
 
@@ -93,8 +71,6 @@
     function sendCitiesForUpdate(cityIds) {
         if (cityIds.length === 0) return;
 
-        console.log('Sending AJAX request for city IDs:', cityIds);
-
         $.ajax({
             url: citiesStatusUpdateAjax.ajaxurl,
             type: 'POST',
@@ -104,28 +80,12 @@
                 nonce: citiesStatusUpdateAjax.nonce
             },
             success: function(response) {
-                console.log('Cities status update successful:', response);
-                
-                                 // Print the city status list in console
+                // Print the city status list in console
                  if (response.success && response.data && response.data.city_status_list) {
-                     console.log('=== City Status List ===');
-                     console.log('Total cities in list:', Object.keys(response.data.city_status_list).length);
-                     
                      Object.entries(response.data.city_status_list).forEach(([cityId, cityData]) => {
-                         console.log(`City ID: ${cityId}`);
-                         console.log(`  Status: ${cityData.status}`);
-                         if (cityData.temperature !== null) {
-                             console.log(`  Temperature: ${cityData.temperature}°C`);
-                         } else {
-                             console.log(`  Temperature: Not available`);
-                         }
-                         console.log('---');
-                         
                          // Update DOM with the received data
                          updateCityInDOM(cityId, cityData);
                      });
-                 } else {
-                     console.log('No city status list received in response');
                  }
             },
             error: function(xhr, status, error) {
