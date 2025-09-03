@@ -342,3 +342,53 @@
     margin-bottom: -0.5rem;
     z-index: 1000;
 }
+
+/* City Temperature Widget Styling */
+.city-temperature-widget {
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.city-temperature-widget h3 {
+    margin: 0 0 0.75rem 0;
+    color: #212529;
+    font-size: 1.25rem;
+    border-bottom: 2px solid #007cba;
+    padding-bottom: 0.5rem;
+}
+
+.city-temperature-widget p {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+}
+
+.city-temperature-widget p strong {
+    color: #007cba;
+    font-weight: 600;
+}
+
+.city-temperature-widget p em {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.city-temperature-widget .cache-status-indicator {
+    display: inline-block;
+    margin-top: 0.5rem;
+    position: relative;
+}
+
+/* Widget responsive design */
+@media (max-width: 768px) {
+    .city-temperature-widget {
+        padding: 0.75rem;
+    }
+    
+    .city-temperature-widget h3 {
+        font-size: 1.1rem;
+    }
+}

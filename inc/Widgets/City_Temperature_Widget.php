@@ -26,8 +26,16 @@ class City_Temperature_Widget extends WP_Widget {
             return;
         }
 
-        $city_data = new CityData();
-        $temperature = $city_data->get_temperature_in_celcius( $city_id );
+        // Use the same approach as the cities list page
+        $cities_repo_with_temp = new CitiesRepositoryWithTemp();
+        $city_with_temp = $cities_repo_with_temp->get_city_with_temp_by_id( $city_id );
+        
+        if ( ! $city_with_temp ) {
+            return;
+        }
+
+        $temperature = $city_with_temp->temperature_celsius ?? null;
+        $cache_status = $city_with_temp->cache_status ?? 'unknown';
 
         echo $args['before_widget'];
 
@@ -38,12 +46,43 @@ class City_Temperature_Widget extends WP_Widget {
         echo '<div class="city-temperature-widget">';
         echo '<h3>' . esc_html( $city->post_title ) . '</h3>';
         
-        if ( $temperature ) {
+        if ( $temperature !== null ) {
             echo '<p><strong>' . __( 'Temperature:', 'storefront-child' ) . '</strong> ' . esc_html( $temperature ) . '°C</p>';
+        } else {
+            echo '<p><em>' . __( 'Temperature data not available', 'storefront-child' ) . '</em></p>';
         }
+        
+        // Add cache status indicator like the cities list
+        echo '<span class="cache-status-indicator cache-status-' . esc_attr( $cache_status ) . '" title="' . esc_attr( ucfirst( $cache_status ) ) . ' cache status">';
+        echo $this->get_cache_status_icon( $cache_status );
+        echo '</span>';
+        
         echo '</div>';
 
         echo $args['after_widget'];
+    }
+
+    /**
+     * Get cache status icon based on status
+     * 
+     * @param string $status Cache status
+     * @return string HTML for status icon
+     */
+    private function get_cache_status_icon($status) {
+        switch ($status) {
+            case 'valid':
+                return '<span class="dashicons dashicons-yes-alt"></span>';
+            case 'expired':
+                return '<span class="dashicons dashicons-clock"></span>';
+            case 'expected':
+                return '<span class="dashicons dashicons-update"></span>';
+            case 'unavailable':
+                return '<span class="dashicons dashicons-no-alt"></span>';
+            case 'abort':
+                return '<span class="dashicons dashicons-dismiss"></span>';
+            default:
+                return '<span class="dashicons dashicons-help"></span>';
+        }
     }
 
     public function form( $instance ) {

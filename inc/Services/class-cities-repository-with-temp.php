@@ -212,5 +212,38 @@ class CitiesRepositoryWithTemp {
         }
     }
 
+    /**
+     * Get a single city with temperature data by ID
+     * 
+     * Retrieves a specific city by ID and enriches it with temperature data
+     * from the weather cache.
+     * 
+     * @param int $city_id The city ID to retrieve
+     * @return object|null City object with temperature data or null if not found
+     */
+    public function get_city_with_temp_by_id(int $city_id): ?object {
+        if (!class_exists('Cities_Repository')) {
+            error_log('Cities_Repository class not found');
+            return null;
+        }
+        
+        $city = Cities_Repository::get_city_by_id($city_id);
+        if (!$city) {
+            return null;
+        }
+        
+        // Convert to array to match the expected format
+        $city_array = [
+            'city_id' => $city->city_id,
+            'city_name' => $city->city_name,
+            'country_name' => '', // Will be filled if needed
+            'country_slug' => ''
+        ];
+        
+        $cities_with_temp = $this->add_temperature_to_cities([(object)$city_array]);
+        
+        return !empty($cities_with_temp) ? $cities_with_temp[0] : null;
+    }
+
     
 }
