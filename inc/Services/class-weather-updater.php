@@ -148,19 +148,66 @@ class WeatherUpdater {
 		update_post_meta($city_id, self::META_KEY, wp_json_encode($cache_data));
 	}
 
+    /**
+     * Check if the weather cache for a city is still fresh and valid
+     *
+     * This method determines whether cached weather data should be refreshed by:
+     * 1. Checking if cache data exists and is valid JSON
+     * 2. Verifying the cache status is 'valid' (only valid data respects TTL)
+     * 3. Comparing the current time against the cache timestamp and TTL
+     *
+     * Invalid cache statuses (like 'api_error', 'no_coordinates') will always
+     * return false to ensure fresh data is fetched.
+     *
+     * @param int $city_id The WordPress post ID of the city
+     * @return bool True if cache is fresh and valid, false otherwise
+     */
     private function is_cache_fresh(int $city_id): bool {
-        $raw = get_post_meta($city_id, self::META_KEY, true);
-        if (!$raw) return false;
-        $data = json_decode((string)$raw, true);
-        if (!is_array($data)) return false;
-        $ts  = (int)($data['timestamp'] ?? 0);
-        $ttl = (int)($data['ttl'] ?? self::CACHE_TTL);
-        $status = (string)($data['status'] ?? '');
-        // Only for valid data respect TTL
-        if ($status !== 'valid') return false;
-        return (time() - $ts) < $ttl;
+        // Get the cached weather data from post meta
+        $cached_weather_raw = get_post_meta($city_id, self::META_KEY, true);
+        
+        // If no cache exists, it's not fresh
+        if (empty($cached_weather_raw)) {
+            return false;
+        }
+        
+        // Decode the JSON cache data
+        $cached_weather_data = json_decode((string)$cached_weather_raw, true);
+        
+        // If cache data is invalid, it's not fresh
+        if (!is_array($cached_weather_data)) {
+            return false;
+        }
+        
+        // Extract timestamp and TTL from cache data
+        $cache_timestamp = (int)($cached_weather_data['timestamp'] ?? 0);
+        $cache_ttl = (int)($cached_weather_data['ttl'] ?? self::CACHE_TTL);
+        $cache_status = (string)($cached_weather_data['status'] ?? '');
+        
+        // Only consider valid weather data for TTL checking
+        // Invalid statuses (like 'api_error', 'no_coordinates') should always refresh
+        if ($cache_status !== 'valid') {
+            return false;
+        }
+        
+        // Check if cache is still within TTL window
+        $seconds_since_cache = time() - $cache_timestamp;
+        return $seconds_since_cache < $cache_ttl;
     }
 
+    /**
+     * Check and increment the global rate limiting budget for weather API calls
+     *
+     * This method implements a sliding window rate limiter to prevent
+     * overwhelming the weather API. It tracks API calls within a time window
+     * and ensures the total requests don't exceed the budget limit.
+     *
+     * The rate limiter uses WordPress transients for storage and automatically
+     * resets when the time window expires. If the budget is exceeded,
+     * the method returns false to prevent further API calls.
+     *
+     * @return bool True if budget allows another API call, false if limit exceeded
+     */
     private function check_and_inc_global_budget(): bool {
         $bucket = get_transient('tw_weather_budget');
         if (!is_array($bucket)) $bucket = ['start' => time(), 'count' => 0];
